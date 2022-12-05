@@ -10,11 +10,18 @@ import axios from "axios";
 function DeclinedApplications() {
     const [data, setData] = useState([])
     const { viewdetail, viewDetails } = useContext(AuthContext)
-
+    const {authTokens} = useContext(AuthContext)
     const Swal = require("sweetalert2")
     console.log(data, "ssssssssssssssssss")
     useEffect(() => {
-        axios.get("http://127.0.0.1:8000/rejected/").then((response) => {
+        axios.get("http://127.0.0.1:8000/rejected/",{
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${
+                    authTokens.access
+                }`
+            }
+        }).then((response) => {
             setData(response.data)
         })
     }, []);
@@ -31,8 +38,8 @@ function DeclinedApplications() {
                             <div className="card-header justify-content-center">
                                 <h2 className="card-title"><strong>NO DECLINED APPLICATIONS LEFT</strong></h2>
                             </div></div>) : (
-                            <div className="card">
-                                <div className="card-header ">
+                            <div className="card text-white bg-light">
+                                <div className="card-header bg-info ">
                                     <h3 className="card-title"><strong>DECLINED APPLICATIONS</strong></h3>
                                 </div>
                                 {data && <div className="card-body">
@@ -51,7 +58,7 @@ function DeclinedApplications() {
                                             <tbody>
                                                 {data.map((list, id) => {
                                                     return (
-                                                        <tr>
+                                                        <tr key={id}>
                                                             <td><strong>{id + 1}</strong></td>
                                                             <td>{list.date}</td>
                                                             <td><a>
@@ -86,12 +93,6 @@ function DeclinedApplications() {
                         </div>
                         <div className="modal-body ">
                             <div class="dz-image-bx rounded d-flex justify-content-around">
-                                <div class="dz-media active me-3">
-                                    <img class="rounded" src={`http://127.0.0.1:8000${viewdetail.image}`} alt="" style={{
-                                        height: "7.5rem",
-                                        width: "8.5rem"
-                                    }} />
-                                </div>
                                 <div class="dz-info">
                                     <h5>{viewdetail && viewdetail.company_name}</h5>
                                     <p className='text-primary'>Applied on:{viewdetail && viewdetail.date}</p>

@@ -12,6 +12,8 @@ function LoginPage() {
     mode: "onChange"
   });
 
+  
+
   const registerOptions = {
     username: { required: "Name is required" },
     password: {
@@ -22,6 +24,9 @@ function LoginPage() {
       }
     }
   };
+
+
+
   return (
     <div className="vh-100">
       <div className="authincation h-100">

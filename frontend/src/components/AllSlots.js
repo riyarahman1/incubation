@@ -1,11 +1,14 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState ,useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"
 import Header from "../components/Header";
 import Logo from "../components/Logo";
 import AdminSideBar from "../components/AdminSideBar";
+import AuthContext from "../context/AuthContext";
+
 function AllSlots() {
     const Swal = require("sweetalert2");
+    const {authTokens} = useContext(AuthContext)
     const [slots, setSlots] = useState([]);
     const [applicant, setApplicant] = useState([]);
     const [slotid, setSlotId] = useState("")
@@ -14,18 +17,32 @@ function AllSlots() {
 
     useEffect(() => {
         // to get approved applications
-        axios
-            .get("http://127.0.0.1:8000/approved/")
-            .then((response) => setApplicant(response.data));
+      
+        axios.get("http://127.0.0.1:8000/approved/",{
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${
+                    authTokens.access
+                }`
+            }
+        }).then((response) => {
+            setApplicant(response.data)
+        })
     }, []);
-
 
     // booking the slot
     const AssignSlot = (userid) => {
         console.log(slotid, 'slottttttttttttttttttttttttttt')
         console.log(userid, 'userrrrrrr')
         axios
-            .post("http://127.0.0.1:8000/allotslot/", { slotid: slotid, applicantid: userid })
+            .post("http://127.0.0.1:8000/allotslot/" , { slotid: slotid, applicantid: userid },{
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${
+                        authTokens.access
+                    }`
+                }
+            })
             .then((response) => {
                 console.log("responsee", response.data);
             })
@@ -37,14 +54,28 @@ function AllSlots() {
     // showing all the slots
     const loadSlot = async () => {
         await axios
-            .get("http://127.0.0.1:8000/allslots/")
+            .get("http://127.0.0.1:8000/allslots/",{
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${
+                        authTokens.access
+                    }`
+                }
+            })
             .then((response) => setSlots(response.data));
 
     }
     //creating slots
     const CreateSlot = () => {
         axios
-            .post("http://127.0.0.1:8000/createslot/")
+            .post("http://127.0.0.1:8000/createslot/",{
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${
+                        authTokens.access
+                    }`
+                }
+            })
             .then((response) => {
             })
         forceUpdate()
@@ -78,13 +109,13 @@ function AllSlots() {
                                             return (
                                                 <>
                                                     <div className="col-xl-3 col-xxl-3 col-sm-6" key={id} >
-                                                        <div className="card overflow-hidden  mt-3 mb-5" >
-                                                            <div className={`social-graph-wrapper text-center pt-5 ${data.is_available === true ? `bg-info bg-gradient` : `bg-success bg-gradient`} `} style={{ width: "100%", height: "100%" }}>
+                                                        <div className=" overflow-hidden mt-3 mb-5" >
+                                                            <div className={` text-center pt-5 ${data.is_available === true ? `bg-warning bg-gradient ` : `bg-primary bg-gradient`} `} style={{ width: "49%"}}>
                                                                 <span >
                                                                     {data.is_available === true ?
-                                                                        <button data-bs-toggle="modal" onClick={() => setSlotId(data.id)} data-bs-target="#exampleModalCenter" type="button" className="btn btn-dark btn-sm" style={{ background: "black" }}><span className="btn-icon-start" style={{ color: "black" }}><i className="fa fa-plus"></i>
-                                                                        </span>ALLOT SLOT</button> : <button type="button" className="btn btn-rounded btn-dark btn-sm" onClick={() => Swal.fire("Already Booked")} style={{ background: "black" }}><span className="btn-icon-start " style={{ color: "black" }}><i className="fa fa-check "></i>
-                                                                        </span>BOOKED</button>}</span>
+                                                                        <button data-bs-toggle="modal" onClick={() => setSlotId(data.id)} data-bs-target="#exampleModalCenter" type="button" className="btn btn-dark btn-sm mb-5" style={{ background: "black" }}><i className="fa fa-plus"></i>
+                                                                        </button> : <button type="button" className="btn btn-rounded btn-dark btn-sm mb-5" onClick={() => Swal.fire("Already Booked")} style={{ background: "black" }}><i className="fa fa-check "></i>
+                                                                        </button>}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -107,29 +138,26 @@ function AllSlots() {
                                                                             <div className="card-body">
                                                                                 <div id="DZ_W_Todo3" className="widget-media dz-scroll height370">
                                                                                     <ul className="timeline">
-                                                                                        {  applicant.map((list, id) => {
+                                                                                        {applicant.map((list, id) => {
                                                                                             return (
-                                                                                                
+
                                                                                                 <li key={id}>
                                                                                                     {!list.allotted &&
-                                                                                                    <>
-                                                                                                    <div className="timeline-panel d-flex">
-                                                                                                        <div className="media me-2">
-                                                                                                            <img alt="image" width="50" src={`http://127.0.0.1:8000${list.image}`} />
-                                                                                                        </div>
-                                                                                                        <div className="media-body" >
-                                                                                                            <h5 className="mb-1"> {list.company_name} <small className="text-muted">{list.date}</small></h5>
-                                                                                                            <p className="mb-1"><strong>#{list.id}</strong> by <strong>{list.fullname}</strong>{list.email}
-                                                                                                            </p>
-                                                                                                        </div>
-                                                                                                        <a data-bs-dismiss="modal" onClick={() => AssignSlot(list.id)} className="btn btn-primary btn-xxs shadow">ALLOT SLOT</a>
-                                                                                                    </div>
-                                                                                                    <hr />
-                                                                                                    </>}
+                                                                                                        <>
+                                                                                                            <div className="timeline-panel d-flex">
+                                                                                                                <div className="media-body" >
+                                                                                                                    <h5 className="mb-1"> {list.company_name} <small className="text-muted">{list.date}</small></h5>
+                                                                                                                    <p className="mb-1"><strong>#{list.id}</strong> by <strong>{list.fullname}</strong>{list.email}
+                                                                                                                    </p>
+                                                                                                                </div>
+                                                                                                                <a data-bs-dismiss="modal" onClick={() => AssignSlot(list.id)} className="btn btn-primary btn-xxs shadow">ALLOT SLOT</a>
+                                                                                                            </div>
+                                                                                                            <hr />
+                                                                                                        </>}
                                                                                                 </li>
 
                                                                                             )
-                                                                                        }) }
+                                                                                        })}
                                                                                     </ul>
                                                                                 </div>
                                                                             </div>

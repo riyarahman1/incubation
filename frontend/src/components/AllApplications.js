@@ -2,20 +2,26 @@ import React, { useEffect, useState, useContext } from 'react'
 import Header from '../components/Header'
 import Logo from '../components/Logo'
 import AdminSideBar from '../components/AdminSideBar'
-
-
-import axios from "axios";
 import AuthContext from '../context/AuthContext';
+import axios from "axios";
+
 
 function AllApplications() {
     const [data, setData] = useState([])
     const Swal = require("sweetalert2")
     const { viewdetail, viewDetails } = useContext(AuthContext)
-
+    const {authTokens} = useContext(AuthContext)
 
     console.log(data, "ssssssssssssssssss")
     useEffect(() => {
-        axios.get("http://127.0.0.1:8000/applications/").then((response) => {
+        axios.get("http://127.0.0.1:8000/applications/",{
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${
+                    authTokens.access
+                }`
+            }
+        }).then((response) => {
             setData(response.data)
         })
     }, []);
@@ -33,8 +39,8 @@ function AllApplications() {
                             <div className="card-header justify-content-center">
                                 <h2 className="card-title"><strong>NO  APPLICATIONS AVAILABLE</strong></h2>
                             </div></div>) : (
-                            <div className="card">
-                                <div className="card-header">
+                            <div className="card text-white bg-light">
+                                <div className="card-header bg-info">
                                     <h3 className="card-title"><strong> ALL APPLICATIONS</strong></h3>
                                 </div>
                                 <div className="card-body">
@@ -54,7 +60,7 @@ function AllApplications() {
                                                 {data.map((list, id) => {
                                                     return (
                                                         <>
-                                                            <tr>
+                                                            <tr key={id}>
                                                                 <td><strong>{id + 1}</strong></td>
                                                                 <td>{list.date}</td>
                                                                 <td><a>
@@ -97,12 +103,6 @@ function AllApplications() {
                         </div>
                         <div className="modal-body ">
                             <div class="dz-image-bx rounded d-flex justify-content-around">
-                                <div class="dz-media active me-3">
-                                    <img class="rounded" src={`http://127.0.0.1:8000${viewdetail.image}`} alt="" style={{
-                                        height: "7.5rem",
-                                        width: "8.5rem"
-                                    }} />
-                                </div>
                                 <div class="dz-info">
                                     <h5>{viewdetail && viewdetail.company_name}</h5>
                                     <p className='text-primary'>Applied on:{viewdetail && viewdetail.date}</p>

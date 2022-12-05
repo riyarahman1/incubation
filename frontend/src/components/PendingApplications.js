@@ -11,11 +11,18 @@ import 'react-toastify/dist/ReactToastify.css';
 function PendingApplications() {
     const [data, setData] = useState([])
     const Swal = require("sweetalert2")
-    const { viewdetail, viewDetails } = useContext(AuthContext)
-
+    const {viewdetail, viewDetails } = useContext(AuthContext)
+    const {authTokens} = useContext(AuthContext)
 
     useEffect(() => {
-        axios.get("http://127.0.0.1:8000/pending/").then((response) => {
+        axios.get("http://127.0.0.1:8000/pending/",{
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${
+                    authTokens.access
+                }`
+            }
+        }).then((response) => {
             setData(response.data)
 
         })
@@ -26,6 +33,7 @@ function PendingApplications() {
 
 
     const approveList = (id) => {
+        console.log(authTokens.access)
         Swal.fire({
             title: "Are you sure ",
             text: " you want to approve the Application?",
@@ -36,7 +44,14 @@ function PendingApplications() {
             confirmButtonText: "YES,Approve",
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.post(`http://127.0.0.1:8000/approve/${id}/`).then(() => {
+                axios.get(`http://127.0.0.1:8000/approve/${id}/`,{
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": `Bearer ${
+                            authTokens.access
+                        }`
+                    }
+                }).then(() => {
                     toast.info('Application Approved!', {
                         position: "top-right",
                         autoClose: 6000,
@@ -49,7 +64,7 @@ function PendingApplications() {
                     });
 
                     window.location.reload()
-                })
+                }).catch((error)=> console.log(error))
             }
         })
         console.log(data)
@@ -63,10 +78,17 @@ function PendingApplications() {
             showCancelButton: "true",
             confirmButtonColor: "#3085D6",
             cancelButtonColor: "#d33",
-            confirmButtonText: "YES,reject",
+            confirmButtonText: "YES,Reject",
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.post(`http://127.0.0.1:8000/reject/${id}/`).then(() => {
+                axios.get(`http://127.0.0.1:8000/reject/${id}/`,{
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": `Bearer ${
+                            authTokens.access
+                        }`
+                    }
+                }).then(() => {
                     toast.info('Application Rejected!', {
                         position: "top-right",
                         autoClose: 6000,
@@ -99,7 +121,7 @@ function PendingApplications() {
                                 <h2 className="card-title"><strong>NO PENDING APPLICATIONS LEFT</strong></h2>
                             </div></div>) : (<div className="card">
 
-                                <div className="card-header">
+                                <div className="card-header bg-info">
                                     <h4 className="card-title"><strong>PENDING APPLICATIONS</strong></h4>
                                 </div>
                                 <div className="card-body">
@@ -119,7 +141,7 @@ function PendingApplications() {
                                             <tbody>
                                                 {data.map((list, id) => {
                                                     return (
-                                                        <tr>
+                                                        <tr key={id}>
                                                             <td><strong>{id + 1}</strong></td>
                                                             <td>{list.date}</td>
                                                             <td><a>
@@ -155,12 +177,6 @@ function PendingApplications() {
                         </div>
                         <div className="modal-body text-center ">
                             <div class="dz-image-bx rounded d-flex justify-content-around">
-                                <div class="dz-media active me-3">
-                                    <img class="rounded" src={`http://127.0.0.1:8000${viewdetail.image}`} alt="" style={{
-                                        height: "7.5rem",
-                                        width: "8.5rem"
-                                    }} />
-                                </div>
                                 <div class="dz-info">
                                     <h5>{viewdetail && viewdetail.company_name}</h5>
                                     <p className='text-primary'>Applied on:{viewdetail && viewdetail.date}</p>

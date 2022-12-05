@@ -23,7 +23,6 @@ class Application(models.Model):
     company_name=models.CharField(max_length=500,null=True)
     email=models.CharField(max_length=50,null=True)
     address=models.CharField(max_length=500,null=True)
-    image=models.ImageField(upload_to="images",null=True)
     companyurl=models.CharField(max_length=50,null=True)
     TypeOfincubation=models.CharField(max_length=50,null=True)
     status=models.CharField(max_length=100, null=True,choices=STATUS,default="PENDING")

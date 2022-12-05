@@ -1,15 +1,21 @@
 import React, { useContext, useState } from "react";
-import AuthContext from "../context/AuthContext";
 import Header from "../components/Header";
 import Logo from "../components/Logo";
-import { toast } from 'react-toastify';
 import axios from "axios"
-import {useNavigate} from 'react-router-dom'
+import AuthContext from "../context/AuthContext";
+import {toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {useNavigate} from 'react-router-dom'
 
 
 function ApplicationForm() {
   const {user} = useContext(AuthContext)
+  const {authTokens} = useContext(AuthContext)
+  const [message, setMessages] = useState("")
+  const [phoneMessage,setPhoneMessage] = useState("")
+  const [error, setError] = useState(false)
+  console.log(authTokens,'vvvvvvvvvvvvvvvvvvvvvv')
+
   const Swal = require("sweetalert2")
   const Navigate=useNavigate()
 
@@ -21,24 +27,61 @@ function ApplicationForm() {
     company_name: "",
     email: "",
     address: "",
-    image: "",
     companyurl:"",
     TypeOfincubation:""
   });
 
   
-  const uploadImage = (e) => {
-    const file = e.target.files[0];
-    setDetails({ ...details, image: file });
+  // const uploadImage = (e) => {
+  //   const file = e.target.files[0];
+  //   setDetails({ ...details, image: file });
     
-  }; 
+  // }; 
   const onHandlechange = (e) => {
     setDetails({ ...details, [e.target.name]: e.target.value });
   };
   const onRadsiochange = (e) => {
     setDetails({ ...details,TypeOfincubation:e.target.value});
   };
+
+
+
   const uploadData = (e) => {  
+     console.log(details,"Detailsnnnnnnnnnn");
+
+     const regEx = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+
+     if (regEx.test(details.email)) {
+      setMessages("Email is valid")
+    }
+    // console.log(name);
+    if (details.fullname.length === 0 &&  details.email.length === 0 ) {
+      setError("true")
+    }
+    else if (!regEx.test(details.email)) {
+      setMessages("Email is not valid");
+    }
+    else {
+      setMessages("")
+    }
+
+    const regEx2 = /^\+?[0-9-]+$/
+
+    if (regEx2.test(details.phone)) {
+      setPhoneMessage("Phone is valid")
+    }
+    // console.log(name);
+    if (details.fullname.length === 0 &&  details.phone.length === 0 ) {
+      setError("true")
+    }
+    else if (!regEx.test(details.phone)) {
+      setPhoneMessage("Phone Number is not valid");
+    }
+    else {
+      setPhoneMessage("")
+    }
+
+
     e.preventDefault();
     console.log(details.image)
     if(details.image===''){
@@ -58,11 +101,35 @@ function ApplicationForm() {
     for (let key in details) {
       formSent.append(key, details[key]);
     }
-    
-    axios.post('http://127.0.0.1:8000/newapplication/',formSent).then((response)=>{
+    console.log(details)
       
-      setDetails('')
-      toast.success('Your Application is Submitted! ', {
+    try {
+      if (regEx.test(details.email)) {{
+
+      axios.post('http://127.0.0.1:8000/newapplication/',details ,{
+        headers: {
+            'Content-Type': 'application/json',
+            "Authorization": `Bearer ${
+                authTokens.access
+            }`
+        }
+    }).then((response)=>{
+        
+        setDetails('')
+        toast.success('Your Application is Submitted! ', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+        Navigate('/')
+        
+    }).catch((error)=>{
+      toast.success('Something went wrong !', {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: true,
@@ -72,25 +139,23 @@ function ApplicationForm() {
         progress: undefined,
         theme: "colored",
       });
-      Navigate('/')
-      
-  }).catch((error)=>{
-    toast.success('Something went wrong !', {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: true,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "colored",
-    });
+  
+    })
 
-  })
+  }}
+
+    } catch(err) {
+       
+      console.log(err)
+  }
+
+   
+
+
   };
   return (
     <div>
-      {/* <Logo /> */}
+      <Logo />
       <Header />
       <div className="authincation h-100">
         <div className="h-100">
@@ -142,7 +207,7 @@ function ApplicationForm() {
                                       className="form-control"
                                       id="validationCustom01"
                                       placeholder="Enter your Name.."
-                                      required
+                                      
                                     />
                                     <div className="invalid-feedback">
                                       Please enter a username.
@@ -166,7 +231,7 @@ function ApplicationForm() {
                                       className="form-control"
                                       id="validationCustom015"
                                       placeholder="Enter your CompanyName.."
-                                      required
+                                      
                                     />
                                     <div className="invalid-feedback">
                                       Please enter a CompanyName.
@@ -190,7 +255,7 @@ function ApplicationForm() {
                                       className="form-control"
                                       id="validationCustom016"
                                       placeholder="Enter your Company Address.."
-                                      required
+                                      
                                     />
                                     <div className="invalid-feedback">
                                       Please enter Address.
@@ -213,8 +278,13 @@ function ApplicationForm() {
                                       className="form-control"
                                       id="validationCustom02"
                                       placeholder="Your valid email.."
-                                      required
+                                    
                                     />
+
+                                  {message ? <label style={{ color: "red" }}>{message}</label> : ""}
+                                  {error && details.email.length <= 0 ?
+                                      <label style={{ color: "red" }} >Email cannot be empty </label> : ""}
+
                                     <div className="invalid-feedback">
                                       Please enter a Email.
                                     </div>
@@ -239,7 +309,7 @@ function ApplicationForm() {
                                       className="form-control"
                                       id="validationCustom07"
                                       placeholder="http://example.com"
-                                      required
+                                     
                                     />
                                     <div className="invalid-feedback">
                                       Please enter a url.
@@ -263,14 +333,19 @@ function ApplicationForm() {
                                       className="form-control"
                                       id="validationCustom08"
                                       placeholder="212-999-0000"
-                                      required
+                                     
                                     />
+
+                                  {phoneMessage ? <label style={{ color: "red" }}>{phoneMessage}</label> : ""}
+                                  {error && details.phone.length <= 0 ?
+                                      <label style={{ color: "red" }} >Phone Number cannot be empty </label> : ""}
+
                                     <div className="invalid-feedback">
                                       Please enter a phone no.
                                     </div>
                                   </div>
                                 </div>
-                                <div className="mb-3 row">
+                                {/* <div className="mb-3 row">
                                   <label
                                     className="col-lg-4 col-form-label"
                                     htmlFor="validationCustom08"
@@ -304,7 +379,7 @@ function ApplicationForm() {
                                       )}
                                     </div>
                                   </div>
-                                </div>
+                                </div> */}
                                 <div className="mb-5 row">
                                   <label className="col-lg-4 col-form-label">
                                     Type of Incubation Needed
@@ -318,7 +393,7 @@ function ApplicationForm() {
                                         type="radio"
                                         name="TypeOfincubation"
                                         value="Virtual Incubation"
-                                        required
+                                        
                                       />
                                       <label className="form-check-label">
                                         Virtual Incubation
@@ -331,7 +406,7 @@ function ApplicationForm() {
                                         type="radio"
                                         name="TypeOfincubation"
                                         value="Physical Incubation"
-                                        required
+                                      
                                       />
                                       <label className="form-check-label">
                                       Physical Incubation

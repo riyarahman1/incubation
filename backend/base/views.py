@@ -2,6 +2,7 @@ from django.shortcuts import render
 from base.api.serializers import *
 from base.models import *
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework.response import Response
 import json
 from rest_framework import status
@@ -25,7 +26,11 @@ class UserSignup(APIView):
 
 
 class NewApplication(APIView):
+    permission_classes = [IsAuthenticated]
+   
     def post(self,request):
+        # user=request.user
+        print('cgvbnnnnnnnnnnnnnnnn')
         print(request.data,'.............................')
         newapplication=NewApplicationserializer(data=request.data)
         if newapplication.is_valid():
@@ -33,7 +38,7 @@ class NewApplication(APIView):
             return Response(status=200)
         else:
             data=newapplication.errors
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 class UserApplications(APIView):
      def post(self,request,id):
@@ -65,12 +70,21 @@ class PendingApplications(APIView):
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 class ApproveApplication(APIView):
-    def post(self,request,id):
+    permission_classes = [IsAuthenticated]
+    # def post(self,request,id):
+    #     print(request.user)
+    #     application = Application.objects.filter(id=id)
+    #     application.update(status="APPROVED")
+    #     return Response (200)
+
+    def get(self,request,id):
+        print(request.user)
         application = Application.objects.filter(id=id)
         application.update(status="APPROVED")
         return Response (200)
 
 class ApprovedApplications(APIView):
+     permission_classes = [IsAuthenticated]
      def get(self,request):
         approvedapplications=Application.objects.filter(status="APPROVED")
         print(approvedapplications)
@@ -80,12 +94,14 @@ class ApprovedApplications(APIView):
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 class RejectApplication(APIView):
-    def post(self,request,id):
+    permission_classes = [IsAuthenticated]
+    def get(self,request,id):
         print('decl................................')
         application = Application.objects.filter(id=id)
         application.update(status="DECLINED")
         return Response (200)
 class RejectedApplications(APIView):
+     permission_classes = [IsAuthenticated]
      def get(self,request):
         rejectedapplications=Application.objects.filter(status="DECLINED")
         print(rejectedapplications)
@@ -95,11 +111,13 @@ class RejectedApplications(APIView):
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 class CreateSlot(APIView):
+   
     def post(self,request):
         Slot.objects.create()
         return Response(200)
 
 class AllSlots(APIView):
+     permission_classes = [IsAuthenticated]
      def get(self,request):
         allslots=Slot.objects.all()
         All=Slotserializer(allslots,many=True)
@@ -110,6 +128,7 @@ class AllSlots(APIView):
 
 
 class AllotSlot(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self,request):
         body = request.body.decode('utf-8')
         body = json.loads(body)
